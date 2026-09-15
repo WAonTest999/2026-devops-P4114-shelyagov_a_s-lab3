@@ -92,12 +92,12 @@ jobs:
           context: backend
           push: true
           tags: |
-            ghcr.io/${{ env.IMAGE_OWNER }}/music-school-lab2-backend:${{ github.sha }}
-            ghcr.io/${{ env.IMAGE_OWNER }}/music-school-lab2-backend:latest
+            ghcr.io/${{ env.IMAGE_OWNER }}/music-school-lab3-backend:${{ github.sha }}
+            ghcr.io/${{ env.IMAGE_OWNER }}/music-school-lab3-backend:latest
       - uses: docker/build-push-action@v6
         with:
           context: frontend
           push: true
           tags: |
-            ghcr.io/${{ env.IMAGE_OWNER }}/music-school-lab2-frontend:${{ github.sha }}
-            ghcr.io/${{ env.IMAGE_OWNER }}/music-school-lab2-frontend:latest
+            ghcr.io/${{ env.IMAGE_OWNER }}/music-school-lab3-frontend:${{ github.sha }}
+            ghcr.io/${{ env.IMAGE_OWNER }}/music-school-lab3-frontend:latest
