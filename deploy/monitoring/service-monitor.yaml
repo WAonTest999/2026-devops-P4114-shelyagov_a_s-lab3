@@ -1,0 +1,7 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata: { name: school, namespace: monitoring }
+spec:
+  namespaceSelector: { matchNames: [school] }
+  selector: { matchLabels: { app: backend } }
+  endpoints: [{ port: http, path: /metrics, interval: 15s }]

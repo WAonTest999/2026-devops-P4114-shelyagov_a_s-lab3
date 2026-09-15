@@ -1,0 +1,32 @@
+grafana:
+  admin:
+    existingSecret: grafana-admin
+    userKey: admin-user
+    passwordKey: admin-password
+  persistence:
+    enabled: true
+    size: 2Gi
+  sidecar:
+    dashboards:
+      enabled: true
+      searchNamespace: ALL
+prometheus:
+  prometheusSpec:
+    retention: 3d
+    serviceMonitorSelectorNilUsesHelmValues: false
+    serviceMonitorNamespaceSelector: {}
+    resources:
+      requests: { cpu: 200m, memory: 512Mi }
+      limits: { cpu: '1', memory: 1Gi }
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          accessModes: [ReadWriteOnce]
+          resources: { requests: { storage: 5Gi } }
+alertmanager:
+  enabled: false
+# K3s exposes these control-plane metrics differently from kubeadm.
+kubeControllerManager: { enabled: false }
+kubeScheduler: { enabled: false }
+kubeEtcd: { enabled: false }
+kubeProxy: { enabled: false }

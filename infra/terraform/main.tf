@@ -15,22 +15,27 @@ variable "folder_id" { type = string }
 variable "zone" { default = "ru-central1-a" }
 variable "admin_cidr" {
   type        = string
-  description = "Your public IP with /32, used for SSH"
+  description = "Your public IP with /32, used for SSH and Kubernetes API"
 }
 variable "ssh_public_key_path" { type = string }
-resource "yandex_vpc_network" "lab" { name = "music-school-lab2" }
+resource "yandex_vpc_network" "lab" { name = "music-school-lab3" }
 resource "yandex_vpc_subnet" "lab" {
-  name           = "music-school-lab2"
+  name           = "music-school-lab3"
   zone           = var.zone
   network_id     = yandex_vpc_network.lab.id
   v4_cidr_blocks = ["10.20.0.0/24"]
 }
 resource "yandex_vpc_security_group" "lab" {
-  name       = "music-school-lab2"
+  name       = "music-school-lab3"
   network_id = yandex_vpc_network.lab.id
   ingress {
     protocol       = "TCP"
     port           = 22
+    v4_cidr_blocks = [var.admin_cidr]
+  }
+  ingress {
+    protocol       = "TCP"
+    port           = 6443
     v4_cidr_blocks = [var.admin_cidr]
   }
   ingress {
@@ -58,16 +63,16 @@ resource "yandex_vpc_security_group" "lab" {
 }
 data "yandex_compute_image" "ubuntu" { family = "ubuntu-2404-lts" }
 resource "yandex_compute_instance" "lab" {
-  name        = "music-school-lab2"
+  name        = "music-school-lab3"
   platform_id = "standard-v3"
   resources {
-    cores  = 2
-    memory = 4
+    cores  = 4
+    memory = 8
   }
   boot_disk {
     initialize_params {
       image_id = data.yandex_compute_image.ubuntu.id
-      size     = 30
+      size     = 50
       type     = "network-ssd"
     }
   }

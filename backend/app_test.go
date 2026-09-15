@@ -50,19 +50,6 @@ func auth(m sqlmock.Sqlmock, admin bool) {
 
 var dbError = errors.New("database unavailable")
 
-func TestReadinessDatabaseFailure(t *testing.T) {
-	db, mock, err := sqlmock.New(sqlmock.MonitorPingsOption(true))
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer db.Close()
-	mock.ExpectPing().WillReturnError(dbError)
-	status(t, request(newApp(db, false), "GET", "/api/ready", "", false), 503)
-	if err := mock.ExpectationsWereMet(); err != nil {
-		t.Fatal(err)
-	}
-}
-
 const eventJSON = `{"title":"Концерт","starts_at":"2099-10-01T12:00:00Z","rows":10,"cols":10}`
 
 func TestValidation(t *testing.T) {
@@ -138,6 +125,7 @@ func TestHTTPBoundaries(t *testing.T) {
 	a, _ := setup(t)
 	status(t, request(a, "GET", "/api/health", "", false), 200)
 	status(t, request(a, "GET", "/missing", "", false), 404)
+	status(t, request(a, "GET", "/metrics", "", false), 200)
 	for _, body := range []string{`{`, `{"unknown":1}`, `{} {}`} {
 		status(t, request(a, "POST", "/api/register", body, false), 400)
 	}

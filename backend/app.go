@@ -16,12 +16,17 @@ import (
 	"time"
 
 	"github.com/jackc/pgx/v5/pgconn"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"golang.org/x/crypto/bcrypt"
 )
 
 type App struct {
-	db     *sql.DB
-	secure bool
+	db       *sql.DB
+	secure   bool
+	registry *prometheus.Registry
+	requests *prometheus.CounterVec
+	duration *prometheus.HistogramVec
 }
 type User struct {
 	ID    int64  `json:"id"`
@@ -42,7 +47,11 @@ type Booking struct {
 }
 
 func newApp(db *sql.DB, secure bool) *App {
-	return &App{db: db, secure: secure}
+	a := &App{db: db, secure: secure, registry: prometheus.NewRegistry()}
+	a.requests = prometheus.NewCounterVec(prometheus.CounterOpts{Name: "school_http_requests_total", Help: "HTTP requests by route and status"}, []string{"method", "route", "status"})
+	a.duration = prometheus.NewHistogramVec(prometheus.HistogramOpts{Name: "school_http_request_duration_seconds", Help: "HTTP request duration"}, []string{"route"})
+	a.registry.MustRegister(a.requests, a.duration, prometheus.NewGoCollector(), prometheus.NewProcessCollector(prometheus.ProcessCollectorOpts{}))
+	return a
 }
 
 type response struct {
@@ -72,6 +81,7 @@ func (a *App) routes() http.Handler {
 	m.HandleFunc("GET /api/events/{id}/bookings", a.bookings)
 	m.HandleFunc("POST /api/events/{id}/bookings", a.reserve)
 	m.HandleFunc("DELETE /api/bookings/{id}", a.cancelBooking)
+	m.Handle("GET /metrics", promhttp.HandlerFor(a.registry, promhttp.HandlerOpts{}))
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("X-Content-Type-Options", "nosniff")
 		if r.Method != "GET" && r.Method != "HEAD" {
@@ -90,7 +100,10 @@ func (a *App) routes() http.Handler {
 		if route == "" {
 			route = "unmatched"
 		}
-
+		if route != "GET /metrics" {
+			a.requests.WithLabelValues(r.Method, route, strconv.Itoa(out.status)).Inc()
+			a.duration.WithLabelValues(route).Observe(time.Since(start).Seconds())
+		}
 		log.Printf("method=%s route=%q status=%d duration=%s", r.Method, route, out.status, time.Since(start))
 	})
 }

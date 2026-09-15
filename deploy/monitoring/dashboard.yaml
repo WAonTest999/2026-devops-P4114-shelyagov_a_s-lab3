@@ -1,0 +1,258 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: school-dashboard
+  namespace: monitoring
+  labels: {grafana_dashboard: "1"}
+data:
+  school.json: |
+    {
+      "uid": "music-school",
+      "title": "Music School \u00b7 Application and Infrastructure",
+      "schemaVersion": 39,
+      "version": 1,
+      "refresh": "10s",
+      "time": {
+        "from": "now-15m",
+        "to": "now"
+      },
+      "templating": {
+        "list": [
+          {
+            "name": "DS_PROMETHEUS",
+            "type": "datasource",
+            "query": "prometheus",
+            "current": {
+              "text": "Prometheus",
+              "value": "prometheus"
+            }
+          }
+        ]
+      },
+      "panels": [
+        {
+          "id": 1,
+          "title": "HTTP requests by pod, route and method",
+          "type": "timeseries",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "gridPos": {
+            "x": 0,
+            "y": 0,
+            "w": 12,
+            "h": 8
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "expr": "sum by (pod, route, method) (rate(school_http_requests_total{namespace=\"school\"}[1m]))",
+              "legendFormat": "{{pod}} {{method}} {{route}}"
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "unit": "reqps"
+            },
+            "overrides": []
+          }
+        },
+        {
+          "id": 2,
+          "title": "Response status by pod",
+          "type": "timeseries",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "gridPos": {
+            "x": 12,
+            "y": 0,
+            "w": 12,
+            "h": 8
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "expr": "sum by (pod, status) (rate(school_http_requests_total{namespace=\"school\"}[1m]))",
+              "legendFormat": "{{pod}} HTTP {{status}}"
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "unit": "reqps"
+            },
+            "overrides": []
+          }
+        },
+        {
+          "id": 3,
+          "title": "Request latency p95",
+          "type": "timeseries",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "gridPos": {
+            "x": 0,
+            "y": 8,
+            "w": 12,
+            "h": 8
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "expr": "histogram_quantile(0.95, sum by (le, pod, route) (rate(school_http_request_duration_seconds_bucket{namespace=\"school\"}[5m])))",
+              "legendFormat": "{{pod}} {{route}}"
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "unit": "s"
+            },
+            "overrides": []
+          }
+        },
+        {
+          "id": 4,
+          "title": "Backend CPU usage (cores)",
+          "type": "timeseries",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "gridPos": {
+            "x": 12,
+            "y": 8,
+            "w": 12,
+            "h": 8
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "expr": "sum by (pod) (rate(container_cpu_usage_seconds_total{namespace=\"school\",container=\"backend\"}[1m]))",
+              "legendFormat": "{{pod}}"
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "unit": "short"
+            },
+            "overrides": []
+          }
+        },
+        {
+          "id": 5,
+          "title": "Backend memory (bytes)",
+          "type": "timeseries",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "gridPos": {
+            "x": 0,
+            "y": 16,
+            "w": 12,
+            "h": 8
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "expr": "sum by (pod) (container_memory_working_set_bytes{namespace=\"school\",container=\"backend\"})",
+              "legendFormat": "{{pod}}"
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "unit": "bytes"
+            },
+            "overrides": []
+          }
+        },
+        {
+          "id": 6,
+          "title": "Available backend replicas",
+          "type": "timeseries",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "gridPos": {
+            "x": 12,
+            "y": 16,
+            "w": 12,
+            "h": 8
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "expr": "kube_deployment_status_replicas_available{namespace=\"school\",deployment=\"backend\"}",
+              "legendFormat": "Available"
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "unit": "short"
+            },
+            "overrides": []
+          }
+        },
+        {
+          "id": 7,
+          "title": "HPA desired replicas",
+          "type": "timeseries",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "gridPos": {
+            "x": 0,
+            "y": 24,
+            "w": 12,
+            "h": 8
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "expr": "kube_horizontalpodautoscaler_status_desired_replicas{namespace=\"school\",horizontalpodautoscaler=\"backend\"}",
+              "legendFormat": "Desired"
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "unit": "short"
+            },
+            "overrides": []
+          }
+        },
+        {
+          "id": 8,
+          "title": "Node CPU usage",
+          "type": "timeseries",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "gridPos": {
+            "x": 12,
+            "y": 24,
+            "w": 12,
+            "h": 8
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "expr": "1 - avg by (instance) (rate(node_cpu_seconds_total{mode=\"idle\"}[5m]))",
+              "legendFormat": "{{instance}}"
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "unit": "percentunit"
+            },
+            "overrides": []
+          }
+        }
+      ]
+    }

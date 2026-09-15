@@ -1,6 +1,9 @@
-- name: Prepare Ubuntu VM for the Docker Compose lab
+- name: Prepare Ubuntu VM for the DevOps labs
   hosts: lab
   become: true
+  vars:
+    install_kubernetes: true
+    k3s_channel: stable
   tasks:
     - name: Install Docker and base utilities
       ansible.builtin.apt:
@@ -17,3 +20,17 @@
         name: '{{ ansible_user }}'
         groups: docker
         append: true
+    - name: Download official K3s installer
+      ansible.builtin.get_url:
+        url: https://get.k3s.io
+        dest: /usr/local/bin/install-k3s.sh
+        mode: '0700'
+      when: install_kubernetes | bool
+    - name: Install single-node Kubernetes with metrics-server and Traefik
+      ansible.builtin.command: /usr/local/bin/install-k3s.sh
+      environment:
+        INSTALL_K3S_CHANNEL: '{{ k3s_channel }}'
+        INSTALL_K3S_EXEC: 'server --write-kubeconfig-mode 600 --tls-san {{ inventory_hostname }}'
+      args:
+        creates: /etc/systemd/system/k3s.service
+      when: install_kubernetes | bool
