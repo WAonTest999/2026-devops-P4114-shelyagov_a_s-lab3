@@ -1,0 +1,19 @@
+- name: Prepare Ubuntu VM for the Docker Compose lab
+  hosts: lab
+  become: true
+  tasks:
+    - name: Install Docker and base utilities
+      ansible.builtin.apt:
+        name: [docker.io, docker-compose-v2, curl, ca-certificates, git, python3, openssl]
+        state: present
+        update_cache: true
+    - name: Enable Docker
+      ansible.builtin.service:
+        name: docker
+        state: started
+        enabled: true
+    - name: Allow the SSH user to run Docker
+      ansible.builtin.user:
+        name: '{{ ansible_user }}'
+        groups: docker
+        append: true

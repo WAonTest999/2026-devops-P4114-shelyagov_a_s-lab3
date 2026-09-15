@@ -1,0 +1,5 @@
+cloud_id            = "YOUR_CLOUD_ID"
+folder_id           = "YOUR_FOLDER_ID"
+zone                = "ru-central1-a"
+admin_cidr          = "YOUR_PUBLIC_IP/32"
+ssh_public_key_path = "~/.ssh/id_ed25519.pub"
