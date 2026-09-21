@@ -23,6 +23,7 @@ jobs:
       - run: go vet ./...
         working-directory: backend
   backend-test:
+    needs: backend-build
     runs-on: ubuntu-latest
     services:
       postgres:
@@ -49,6 +50,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         with: { name: backend-coverage, path: backend/coverage.out }
   frontend-build:
+    needs: backend-test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -59,6 +61,7 @@ jobs:
       - run: npm run build
         working-directory: frontend
   frontend-test:
+    needs: frontend-build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
