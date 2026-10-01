@@ -49,6 +49,11 @@ resource "yandex_vpc_security_group" "lab" {
     v4_cidr_blocks = ["0.0.0.0/0"]
   }
   ingress {
+    protocol       = "TCP"
+    port           = 3000
+    v4_cidr_blocks = ["0.0.0.0/0"]
+  }
+  ingress {
     protocol          = "ANY"
     predefined_target = "self_security_group"
     from_port         = 0

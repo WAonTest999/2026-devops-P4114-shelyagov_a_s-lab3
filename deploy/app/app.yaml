@@ -17,7 +17,7 @@ spec:
           envFrom: [{ secretRef: { name: school-secrets } }]
           env: [{ name: COOKIE_SECURE, value: 'true' }]
           resources:
-            requests: { cpu: 500m, memory: 128Mi }
+            requests: { cpu: 100m, memory: 128Mi }
             limits: { cpu: 500m, memory: 256Mi }
           readinessProbe:
             { httpGet: { path: /api/ready, port: http }, initialDelaySeconds: 5, periodSeconds: 5 }
